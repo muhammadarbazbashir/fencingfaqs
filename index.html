@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jane's Link Site</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: url('bg.png') no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px 60px;
+    }
+    .profile-img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 20px;
+      border: 2px solid rgba(255,255,255,0.4);
+      box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+      transition: opacity 0.3s;
+    }
+    h1 {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 12px;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      letter-spacing: 0.5px;
+    }
+    h1 span {
+      background-color: black;
+      color: white;
+      padding: 3px 6px;
+      font-weight: 600;
+      border-radius: 2px;
+    }
+    .subtitle {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .bio-wrapper {
+      width: 100%;
+      max-width: 400px;
+      margin-bottom: 28px;
+    }
+    .bio-text {
+      font-size: 14px;
+      line-height: 1.7;
+      text-align: center;
+      width: 100%;
+      background: rgba(0,0,0,0.25);
+      padding: 15px 20px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.95);
+    }
+    .links-container {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 35px;
+    }
+    .link-btn {
+      background: rgba(144,76,172,0.85);
+      color: white;
+      text-decoration: none;
+      padding: 14px;
+      text-align: center;
+      border-radius: 4px;
+      font-size: 15px;
+      font-weight: 500;
+      border: 1px solid rgba(255,255,255,0.6);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+      transition: background 0.2s, transform 0.15s, box-shadow 0.15s;
+      display: block;
+    }
+    .link-btn:hover {
+      background: rgba(144,76,172,0.98);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+    }
+    .buy-now-btn {
+      background: linear-gradient(135deg, rgba(230,126,34,0.92), rgba(192,57,43,0.92));
+      border-color: rgba(255,200,100,0.65);
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: 0.3px;
+    }
+    .buy-now-btn:hover {
+      background: linear-gradient(135deg, rgba(230,126,34,1), rgba(192,57,43,1));
+    }
+    .contact-form {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .form-title {
+      font-size: 15px;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 5px;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .contact-form input {
+      width: 100%;
+      background: rgba(255,255,255,0.88);
+      border: none;
+      padding: 14px;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #333;
+      text-align: center;
+      font-weight: 500;
+      font-family: inherit;
+      outline: none;
+      transition: background 0.2s;
+    }
+    .contact-form input:focus { background: rgba(255,255,255,1); }
+    .contact-form input::placeholder { color: #888; }
+    .contact-form button {
+      background: rgba(144,76,172,0.88);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.6);
+      padding: 14px;
+      border-radius: 4px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+      transition: background 0.2s, transform 0.15s;
+    }
+    .contact-form button:hover {
+      background: rgba(144,76,172,1);
+      transform: translateY(-2px);
+    }
+    #formStatus {
+      text-align: center;
+      font-size: 13px;
+      min-height: 20px;
+    }
+    #paypal-button-container {
+      width: 100%;
+    }
+    /* PayPal SDK overrides for consistent sizing */
+    .paypal-buttons { border-radius: 4px !important; }
+    .admin-link {
+      margin-top: 40px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.25);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .admin-link:hover { color: rgba(255,255,255,0.55); }
+  </style>
+</head>
+<body>
+
+  <img id="profileImg" src="profile.png" alt="Profile" class="profile-img">
+  <h1>Welcome to <span id="siteName">Jane's</span> link site!</h1>
+  <div id="siteSubtitle" class="subtitle">See what I am up to.</div>
+
+  <!-- Bio: read-only, managed from Admin Dashboard -->
+  <div class="bio-wrapper">
+    <div id="bioText" class="bio-text"></div>
+  </div>
+
+  <div class="links-container">
+    <!-- URLs are managed from the Admin Dashboard -->
+    <a id="linkBio" href="#" class="link-btn">Bio</a>
+    <a id="linkFaq" href="#" class="link-btn">Full Fencing FAQ</a>
+    <a id="linkInstagram" href="#" class="link-btn">Instagram Story Library</a>
+    <a id="linkYoutube" href="#" class="link-btn">YouTube Video Analysis Library</a>
+  </div>
+
+  <!-- PayPal Buy Now Button (rendered by PayPal JS SDK) -->
+  <div style="width:100%;max-width:400px;margin-bottom:35px;">
+    <div id="paypal-button-container"></div>
+    <div id="paypalStatus" style="text-align:center;font-size:12px;color:rgba(255,255,255,0.4);margin-top:8px;"></div>
+  </div>
+
+  <div class="form-title">Get in touch.</div>
+  <form class="contact-form" id="contactForm">
+    <input id="contactName" type="text" placeholder="Name" required>
+    <input id="contactEmail" type="email" placeholder="Email" required>
+    <input id="contactMessage" type="text" placeholder="Message" required>
+    <button type="submit">Send Message</button>
+    <div id="formStatus"></div>
+  </form>
+
+  <a href="admin.html" class="admin-link">Admin ↗</a>
+
+  <script>
+    const SUPABASE_URL = 'https://iverihidbtcrpigszqoa.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2ZXJpaGlkYnRjcnBpZ3N6cW9hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDU5NDIsImV4cCI6MjEwMjM4MTk0Mn0.YFjhgb3lponkcWCrJFJ1P7k4zvlO0Xh9QSxhTJwGIRc';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function loadSettings() {
+      const { data } = await sb.from('settings').select('*').eq('id', 1).single();
+      if (!data) return;
+      if (data.profile_image_url) document.getElementById('profileImg').src = data.profile_image_url;
+      if (data.name) document.getElementById('siteName').textContent = data.name;
+      if (data.subtitle) document.getElementById('siteSubtitle').textContent = data.subtitle;
+      // Bio is read-only on public site — managed from admin
+      document.getElementById('bioText').textContent = data.bio || '';
+      if (data.link_bio_url) document.getElementById('linkBio').href = data.link_bio_url;
+      if (data.link_faq_url) document.getElementById('linkFaq').href = data.link_faq_url;
+      if (data.link_instagram_url) document.getElementById('linkInstagram').href = data.link_instagram_url;
+      if (data.link_youtube_url) document.getElementById('linkYoutube').href = data.link_youtube_url;
+      // Load PayPal SDK if Client ID is set and not just empty spaces
+      if (data.paypal_client_id && data.paypal_client_id.trim() !== '') {
+        const amt = data.paypal_amount && data.paypal_amount.trim() !== '' ? data.paypal_amount : '1.00';
+        loadPayPal(data.paypal_client_id.trim(), amt, data.paypal_currency || 'USD', data.paypal_description || 'Product');
+      } else {
+        document.getElementById('paypalStatus').textContent = 'Buy Now button coming soon (Missing Client ID).';
+      }
+    }
+
+    function loadPayPal(clientId, amount, currency, description) {
+      const script = document.createElement('script');
+      script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${currency}`;
+      
+      script.onload = () => {
+        try {
+          paypal.Buttons({
+            style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'buynow' },
+            createOrder: (data, actions) => actions.order.create({
+              purchase_units: [{ amount: { value: amount, currency_code: currency }, description: description }]
+            }),
+            onApprove: (data, actions) => actions.order.capture().then(() => {
+              document.getElementById('paypalStatus').textContent = '✓ Payment successful! Thank you for your purchase.';
+              document.getElementById('paypalStatus').style.color = '#7dffb3';
+            }),
+            onError: (err) => {
+              console.error('PayPal Button Error:', err);
+              document.getElementById('paypalStatus').textContent = 'Payment error. Please try again.';
+              document.getElementById('paypalStatus').style.color = '#ff7070';
+            }
+          }).render('#paypal-button-container');
+        } catch (e) {
+          console.error('Error rendering PayPal buttons:', e);
+          document.getElementById('paypalStatus').textContent = 'Error loading checkout. Check console.';
+        }
+      };
+      
+      script.onerror = () => {
+        console.error('Failed to load PayPal JS SDK script.');
+        document.getElementById('paypalStatus').textContent = 'Failed to load PayPal. Make sure the Client ID is correct.';
+      };
+      
+      document.head.appendChild(script);
+    }
+
+    // Contact form — saves to Supabase contacts table
+    document.getElementById('contactForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = document.getElementById('formStatus');
+      const btn = e.target.querySelector('button');
+      btn.textContent = 'Sending...';
+      btn.disabled = true;
+      const { error } = await sb.from('contacts').insert({
+        name: document.getElementById('contactName').value.trim(),
+        email: document.getElementById('contactEmail').value.trim(),
+        message: document.getElementById('contactMessage').value.trim()
+      });
+      btn.textContent = 'Send Message';
+      btn.disabled = false;
+      if (error) {
+        status.textContent = '✗ Error sending. Please try again.';
+        status.style.color = '#ff7070';
+      } else {
+        status.textContent = "✓ Message sent! I'll get back to you soon.";
+        status.style.color = '#7dffb3';
+        e.target.reset();
+        setTimeout(() => status.textContent = '', 4000);
+      }
+    });
+
+    loadSettings();
+  </script>
+</body>
+</html>
