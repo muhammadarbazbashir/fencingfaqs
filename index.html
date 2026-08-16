@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jane's Link Site</title>
+  <title>FencingFaqs</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -170,9 +170,28 @@
 </head>
 <body>
 
-  <img id="profileImg" src="profile.png" alt="Profile" class="profile-img">
-  <h1>Welcome to <span id="siteName">Jane's</span> link site!</h1>
-  <div id="siteSubtitle" class="subtitle">See what I am up to.</div>
+  <img id="profileImg" src="profile.png" alt="Profile" class="profile-img" style="opacity: 0;">
+  <h1>Welcome to <span id="siteName"></span> link site!</h1>
+  <div id="siteSubtitle" class="subtitle"></div>
+  <script>
+    // Instantly apply cached image and text before the page even paints
+    try {
+      const cached = localStorage.getItem('site_settings');
+      if (cached) {
+        const data = JSON.parse(cached);
+        const img = document.getElementById('profileImg');
+        if (data.profile_image_url) img.src = data.profile_image_url;
+        img.style.opacity = '1';
+        if (data.name) document.getElementById('siteName').textContent = data.name;
+        if (data.subtitle) document.getElementById('siteSubtitle').textContent = data.subtitle;
+        if (data.bio) document.getElementById('bioText').textContent = data.bio;
+        if (data.link_bio_url) document.getElementById('linkBio').href = data.link_bio_url;
+        if (data.link_faq_url) document.getElementById('linkFaq').href = data.link_faq_url;
+        if (data.link_instagram_url) document.getElementById('linkInstagram').href = data.link_instagram_url;
+        if (data.link_youtube_url) document.getElementById('linkYoutube').href = data.link_youtube_url;
+      }
+    } catch(e) {}
+  </script>
 
   <!-- Bio: read-only, managed from Admin Dashboard -->
   <div class="bio-wrapper">
@@ -212,7 +231,16 @@
     async function loadSettings() {
       const { data } = await sb.from('settings').select('*').eq('id', 1).single();
       if (!data) return;
-      if (data.profile_image_url) document.getElementById('profileImg').src = data.profile_image_url;
+      
+      // Save data for next time so it loads instantly
+      localStorage.setItem('site_settings', JSON.stringify(data));
+
+      const img = document.getElementById('profileImg');
+      if (data.profile_image_url) {
+        img.src = data.profile_image_url;
+      }
+      img.style.opacity = '1';
+
       if (data.name) document.getElementById('siteName').textContent = data.name;
       if (data.subtitle) document.getElementById('siteSubtitle').textContent = data.subtitle;
       // Bio is read-only on public site — managed from admin
